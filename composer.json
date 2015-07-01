@@ -1,0 +1,13 @@
+{
+    "name": "frankkalmbach/bloom_pta",
+    "authors": [
+        {
+            "name": "Frank Kalmbach",
+            "email": "frank.kalmbach@hotmail.com"
+        }
+    ],
+    "require": {
+        "monolog/monolog": "^1.14",
+        "slim/slim": "^2.6"
+    }
+}
