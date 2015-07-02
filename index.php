@@ -40,13 +40,63 @@ $view->parserExtensions = array(
 $app->get('/', function() use($app){  // use tells to use the app object
   //echo 'Hello, this is the home page.';
   $app->render('about.twig'); // looks first in templates folder
-});
+})->name('home'); //naming URL the the function name()
 
 $app->get('/contact', function() use($app){
   //echo 'Feel free to contact us.';
   $app->render('contact.twig');
-});
+})->name('contact');
 
+//setting up new route for contact form
+//this will dump the post data as an array to the screen at /contact
+$app->post('/contact', function() use($app){
+  //breaking out the post variables into indiv vars for validation
+  $name = $app->request->post('name');
+  $email = $app->request->post('email'); 
+  $msg = $app->request->post('msg'); 
+  
+  // conditional to check if vars empty (long form - for loop better)
+  if(!empty($name) && !empty($email) && !empty($msg)) {
+    // sanitizing data info from user in case of bad input
+    $cleanName = filter_var($name, FILTER_SANITIZE_STRING);
+    $cleanEmail = filter_var($email, FILTER_SANITIZE_EMAIL);    
+    $cleanMsg = filter_var($msg, FILTER_SANITIZE_STRING);    
+    
+  } else {
+    // add later to msg the user that a field(s) were empty
+    $app->redirect('/contact'); //slim method to return to URL with form
+  }
+  
+  //creating a mail object variable transport, set equal to class and static (using dbl colon ::) method instance
+  $transport = Swift_SendmailTransport::newInstance('/usr/sbin/sendmail -bs');
+  //creating swiftmailer mailer instance
+  $mailer = \Swift_Mailer::newInstance($transport);
+  //composing the message object
+  $message = \Swift_Message::newInstance();
+  $message->setSubject('Email From Our Website');
+  $message->setFrom(array(
+    $cleanEmail => $cleanName // array key-value pair
+  ));
+  $message->setTo(array('frank.kalmbach@hotmail.com'));
+  $message->setBody($cleanMsg);
+  
+  //using mailer to send out msg with another method
+  $result = $mailer->send($message);
+  //checking to see if msg sent - $result will have a 0 or integer
+  //an integer indicates how many msgs sent
+  if($result > 0 {
+    // send a msg that says thank you
+    $app->redirect('/');
+  } else {
+    // send msg to user that the msg failed to send
+    // log that there was an error
+    $app->redirect('/contact');
+  }
+  
+  
+  
+  // var_dump($app->request->post()); //old code
+});
 
 //running the slim application
 $app->run();
